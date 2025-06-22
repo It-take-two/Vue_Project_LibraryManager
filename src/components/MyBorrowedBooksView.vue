@@ -1,5 +1,6 @@
 <template>
   <div class="borrowed-page">
+
     <h2>我的借阅记录</h2>
 
     <el-tabs v-model="activeTab">
@@ -73,8 +74,9 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useBorrowRepository } from '@/repositories/borrowRepository'
-import { useCatalogRepository } from '@/repositories/catalogRepository'
+import UserLayout from './UserLayout.vue'
+import { useBorrowRepository } from '../repositories/borrow'
+import { useCatalogRepository } from '../repositories/catalog'
 
 const { getMyBorrows, getMyIncompleteBorrows } = useBorrowRepository()
 const { getCatalog } = useCatalogRepository()

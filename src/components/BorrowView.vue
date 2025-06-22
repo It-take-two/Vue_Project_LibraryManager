@@ -97,9 +97,10 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useCollectionRepository } from '@/repositories/collectionRepository'
-import { useBorrowRuleRepository } from '@/repositories/borrowRuleRepository'
-import { useClcRepository } from '@/repositories/clcRepository'
+import UserLayout from './UserLayout.vue'
+import { useCollectionRepository } from '../repositories/collection'
+import { useBorrowRuleRepository } from '../repositories/borrowRule'
+import { useClcRepository } from '../repositories/clc'
 
 const { searchCollections, getCollectionByBarcode } = useCollectionRepository()
 const { getBorrowRules } = useBorrowRuleRepository()

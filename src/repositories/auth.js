@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8080/auth"; 
 
-export const auth = () => {
+export const useAuth = () => {
   const state = reactive({
     token: localStorage.getItem("token") || null,
     refreshToken: localStorage.getItem("refreshToken") || null,
