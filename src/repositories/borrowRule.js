@@ -1,10 +1,10 @@
-import axios from 'axios'
+import authAxios from './interceptors'
 
-const BASE_URL = '/borrowRule'
+const BASE_URL = 'http://localhost:8080/borrowRule'
 
 export function useBorrowRuleRepository() {
   const getBorrowRules = () => {
-    return axios.get(`${BASE_URL}/list`)
+    return authAxios.get(`${BASE_URL}/list`)
   }
 
   return {

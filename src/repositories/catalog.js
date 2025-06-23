@@ -1,30 +1,30 @@
 // src/repositories/catalogRepository.js
-import axios from 'axios'
+import authAxios from './interceptors'
 
-const BASE_URL = '/catalog'
+const BASE_URL = 'http://localhost:8080/catalog'
 
 export function useCatalogRepository() {
   const getCatalogList = () => {
-    return axios.get(`${BASE_URL}/list`)
+    return authAxios.get(`${BASE_URL}/list`)
   }
 
   const getCatalog = (id) => {
-    return axios.get(`${BASE_URL}/${id}`)
+    return authAxios.get(`${BASE_URL}/${id}`)
   }
 
   const addCatalog = (payload) => {
     // payload 结构见 CatalogRequest：name, isbn, publisher, category, publishDate, author, value
-    return axios.post(`${BASE_URL}/add`, payload)
+    return authAxios.post(`${BASE_URL}/add`, payload)
   }
 
   const updateCatalog = (id, payload) => {
-    return axios.put(`${BASE_URL}/update`, payload, {
+    return authAxios.put(`${BASE_URL}/update`, payload, {
       params: { id },
     })
   }
 
   const deleteCatalog = (id) => {
-    return axios.delete(`${BASE_URL}/${id}`)
+    return authAxios.delete(`${BASE_URL}/${id}`)
   }
 
   return {

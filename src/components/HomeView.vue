@@ -42,7 +42,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import UserLayout from './UserLayout.vue'
 import { useCollectionRepository } from '../repositories/collection'
 
 const { getRandomBorrowableCollections, getCollectionByBarcode } = useCollectionRepository()
@@ -55,6 +54,7 @@ const dialogVisible = ref(false)
 const loadBooks = async () => {
   loading.value = true
   const res = await getRandomBorrowableCollections()
+  books.value = res.data
   loading.value = false
 }
 

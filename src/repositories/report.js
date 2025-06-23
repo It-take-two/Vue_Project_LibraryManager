@@ -1,15 +1,15 @@
 // src/repositories/reportRepository.js
-import axios from 'axios'
+import authAxios from './interceptors'
 
-const BASE_URL = '/report'
+const BASE_URL = 'http://localhost:8080/report'
 
 export function useReportRepository() {
   const getReportList = () => {
-    return axios.get(`${BASE_URL}/list`)
+    return authAxios.get(`${BASE_URL}/list`)
   }
 
   const exportReport = () => {
-    return axios.get(`${BASE_URL}/export`, {
+    return authAxios.get(`${BASE_URL}/export`, {
       responseType: 'blob',
     })
   }

@@ -1,15 +1,15 @@
 // src/repositories/clcRepository.js
-import axios from 'axios'
+import authAxios from './interceptors'
 
-const BASE_URL = '/clc'
+const BASE_URL = 'http://localhost:8080/clc'
 
 export function useClcRepository() {
   const getClcTree = () => {
-    return axios.get(`${BASE_URL}/tree`)
+    return authAxios.get(`${BASE_URL}/tree`)
   }
 
   const getClcById = (id) => {
-    return axios.get(`${BASE_URL}/${id}`)
+    return authAxios.get(`${BASE_URL}/${id}`)
   }
 
   return {

@@ -1,28 +1,44 @@
-import axios from "axios";
-import { auth } from "/auth";
+import axios from 'axios'
+import { useAuth } from './auth'
 
-const { state, refresh, logout } = auth();
+const { refresh, logout } = useAuth()
 
-axios.interceptors.request.use(config => {
-    if (state.token) {
-        config.headers.Authorization = 'Bearer ${state.token}';
-        return config;
-    }
-});
+const authAxios = axios.create()
 
-axios.interceptors.response.use(
-    response => response,
-    async error => {
-        if (error.response && error.response.status === 401 && state.refreshToken) {
-            try {
-                await refresh();
-                error.config.headers.Authorization = 'Bearer ${state.token}';
-                return axios(error.config);
-            } catch {
-                console.error("自动刷新 Token 失败，需要重新登录");
-                logout();
-            }
+authAxios.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+authAxios.interceptors.response.use(
+  res => res,
+  async error => {
+    const status = error.response?.status
+    const originalRequest = error.config
+
+    if (status === 401 && !originalRequest._retry) {
+      const refreshToken = localStorage.getItem('refreshToken')
+      if (refreshToken) {
+        try {
+          originalRequest._retry = true
+          await refresh()
+          const newToken = localStorage.getItem('token')
+          originalRequest.headers.Authorization = `Bearer ${newToken}`
+          return authAxios(originalRequest)
+        } catch (err) {
+          logout()
+          return Promise.reject(err)
         }
-        return Promise.reject(error);
+      } else {
+        logout()
+      }
     }
-);
+
+    return Promise.reject(error)
+  }
+)
+
+export default authAxios

@@ -1,49 +1,49 @@
 // src/repositories/userRepository.js
-import axios from 'axios'
+import authAxios from './interceptors'
 
-const BASE_URL = '/user'
+const BASE_URL = 'http://localhost:8080/user'
 
 export function useUserRepository() {
   const getUserInfo = () => {
-    return axios.get(`${BASE_URL}/userInfo`)
+    return authAxios.get(`${BASE_URL}/userInfo`)
   }
 
   const getUserList = (page = 1) => {
-    return axios.get(`${BASE_URL}/userList`, { params: { page } })
+    return authAxios.get(`${BASE_URL}/userList`, { params: { page } })
   }
 
   const getAdminList = (page = 1) => {
-    return axios.get(`${BASE_URL}/adminList`, { params: { page } })
+    return authAxios.get(`${BASE_URL}/adminList`, { params: { page } })
   }
 
   const addUser = (payload) => {
-    return axios.post(`${BASE_URL}/add`, payload)
+    return authAxios.post(`${BASE_URL}/add`, payload)
   }
 
   const updateMyUser = (phone) => {
-    return axios.put(`${BASE_URL}/my`, null, { params: { phone } })
+    return authAxios.put(`${BASE_URL}/my`, null, { params: { phone } })
   }
 
   const updateMyPassword = (oldPassword, newPassword) => {
-    return axios.put(`${BASE_URL}/myPassword`, null, {
+    return authAxios.put(`${BASE_URL}/myPassword`, null, {
       params: { oldPassword, newPassword },
     })
   }
 
   const resetPassword = (userId) => {
-    return axios.put(`${BASE_URL}/resetPassword`, null, {
+    return authAxios.put(`${BASE_URL}/resetPassword`, null, {
       params: { userId },
     })
   }
 
   const updateUser = (userId, payload) => {
-    return axios.put(`${BASE_URL}/update`, payload, {
+    return authAxios.put(`${BASE_URL}/update`, payload, {
       params: { userId },
     })
   }
 
   const deleteUser = (id) => {
-    return axios.delete(`${BASE_URL}/${id}`)
+    return authAxios.delete(`${BASE_URL}/${id}`)
   }
 
   return {

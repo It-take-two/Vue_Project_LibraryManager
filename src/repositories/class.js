@@ -1,10 +1,10 @@
-import axios from 'axios'
+import authAxios from './interceptors'
 
-const BASE_URL = '/class'
+const BASE_URL = 'http://localhost:8080/class'
 
 export function useClassRepository() {
   const getClassById = (id) => {
-    return axios.get(`${BASE_URL}/${id}`)
+    return authAxios.get(`${BASE_URL}/${id}`)
   }
 
   return {

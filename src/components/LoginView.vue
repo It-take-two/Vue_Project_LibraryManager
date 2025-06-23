@@ -37,7 +37,12 @@ const handleLogin = async () => {
   loading.value = true
   try {
     await login(form.value.name, form.value.password)
-    router.push('/')
+    const role = localStorage.getItem('roleName')
+    if (role === 'admin') {
+      router.push('/admin/dashboard')
+    } else {
+      router.push('/')
+    }
   } catch (err) {
     error.value = '登录失败，请检查用户名和密码'
   } finally {

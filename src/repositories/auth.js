@@ -1,49 +1,62 @@
-import { reactive } from "vue";
-import axios from "axios";
+import axios from 'axios'
 
-const API_BASE_URL = "http://localhost:8080/auth"; 
+const API_BASE_URL = 'http://localhost:8080/auth'
 
-export const useAuth = () => {
-  const state = reactive({
-    token: localStorage.getItem("token") || null,
-    refreshToken: localStorage.getItem("refreshToken") || null,
-    user: null,
-  });
+const getAuthHeader = () => {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
-  const saveTokens = (token, refreshToken) => {
-    state.token = token;
-    state.refreshToken = refreshToken;
-    localStorage.setItem("token", token);
-    localStorage.setItem("refreshToken", refreshToken);
-  };
+const login = async (name, password) => {
+  try {
+    const { data } = await axios.post(`${API_BASE_URL}/login`, { name, password })
+    localStorage.setItem('token', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    await saveRoleName()
+    return data.roleName
+  } catch (err) {
+    console.error('登录失败:', err)
+    throw err
+  }
+}
 
-  const register = async (name, password) => {
-    await axios.post(`${API_BASE_URL}/register`, { name, password });
-  };
+const refresh = async () => {
+  const refreshToken = localStorage.getItem('refreshToken')
+  if (!refreshToken) {
+    logout()
+    return
+  }
+  try {
+    const { data } = await axios.post(`${API_BASE_URL}/refresh`, { refreshToken })
+    localStorage.setItem('token', data.accessToken)
+  } catch (err) {
+    console.warn('刷新 token 失败:', err)
+    logout()
+  }
+}
 
-  const login = async (name, password) => {
-    const response = await axios.post(`${API_BASE_URL}/login`, { name, password });
-    saveTokens(response.data.token, response.data.refreshToken);
-    state.user = response.data.user;
-  };
+const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('refreshToken')
+  localStorage.removeItem('roleName')
+  window.dispatchEvent(new Event('app-logout'))
+}
 
-  const refresh = async () => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/refresh`, { refreshToken: state.refreshToken });
-      saveTokens(response.data.token, state.refreshToken);
-    } catch (error) {
-      console.error("刷新令牌失败，需要重新登录");
-      logout();
-    }
-  };
+const saveRoleName = async () => {
+  try {
+    const { data } = await axios.get('http://localhost:8080/user/userInfo', {
+      headers: getAuthHeader(),
+    })
+    localStorage.setItem('roleName', data.roleName)
+  } catch (err) {
+    console.error('获取用户信息失败:', err)
+    logout()
+  }
+}
 
-  const logout = () => {
-    state.token = null;
-    state.refreshToken = null;
-    state.user = null;
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-  };
-
-  return { state, register, login, refresh, logout };
-};
+export const useAuth = () => ({
+  login,
+  refresh,
+  logout,
+  saveRoleName
+})

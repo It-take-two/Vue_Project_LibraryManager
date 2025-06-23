@@ -39,7 +39,6 @@ import { ref, computed, onMounted } from 'vue'
 import { Expand, CloseBold } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../repositories/auth'
-import { ElMessage } from 'element-plus'
 
 const { logout } = useAuth()
 const router = useRouter()
@@ -50,8 +49,6 @@ const toggleSidebar = () => { showSidebar.value = !showSidebar.value }
 
 const handleLogout = async () => {
   await logout()
-  ElMessage.success('已成功退出登录')
-  router.push('/login')
 }
 </script>
 
