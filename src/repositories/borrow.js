@@ -3,6 +3,10 @@ import authAxios from './interceptors'
 const BASE_URL = 'http://localhost:8080/borrow'
 
 export function useBorrowRepository() {
+  const getBorrowByBarcode = (barcode) => {
+    return authAxios.get(`${BASE_URL}/barcode`, { params: { barcode } })
+  }
+
   const getAllBorrows = (page = 1) => {
     return authAxios.get(`${BASE_URL}/list`, { params: { page } })
   }
@@ -23,15 +27,19 @@ export function useBorrowRepository() {
     return authAxios.get(`${BASE_URL}/my/incomplete`, { params: { page } })
   }
 
-  const addBorrow = (payload) => {
-    // payload 应包含 userId, collectionId, returnDeadline
-    return authAxios.post(`${BASE_URL}/add`, payload)
+  const addBorrow = (userId, collectionId) => {
+    return authAxios.post(`${BASE_URL}/add`, { userId, collectionId })
   }
 
-  const updateBorrow = (borrowId, payload) => {
-    // payload 包含 renewedTimes, finePaid, returnDate, collectionIsBorrowable
-    return authAxios.put(`${BASE_URL}/update`, payload, {
-      params: { borrowId },
+  const updateBorrow = (userId, borrowId, renewedTimes, finePaid, returnDate, collectionIsBorrowable) => {
+    return authAxios.put(`${BASE_URL}/update`, {
+      userId,
+      renewedTimes,
+      finePaid,
+      returnDate,
+      collectionIsBorrowable,
+    }, {
+      params: { borrowId }
     })
   }
 
@@ -40,10 +48,11 @@ export function useBorrowRepository() {
   }
 
   const getMyOverdueBorrows = () => {
-  return authAxios.get(`${BASE_URL}/overdue`)
-}
+    return authAxios.get(`${BASE_URL}/overdue`)
+  }
 
   return {
+    getBorrowByBarcode,
     getAllBorrows,
     getIncompleteBorrows,
     getBorrowsByUser,

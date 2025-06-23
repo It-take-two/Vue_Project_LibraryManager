@@ -25,6 +25,7 @@ authAxios.interceptors.response.use(
         try {
           originalRequest._retry = true
           await refresh()
+          console.log("refreshToken: ", refreshToken)
           const newToken = localStorage.getItem('token')
           originalRequest.headers.Authorization = `Bearer ${newToken}`
           return authAxios(originalRequest)

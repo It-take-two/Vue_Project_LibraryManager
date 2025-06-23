@@ -1,4 +1,3 @@
-// src/repositories/userRepository.js
 import authAxios from './interceptors'
 
 const BASE_URL = 'http://localhost:8080/user'
@@ -6,6 +5,10 @@ const BASE_URL = 'http://localhost:8080/user'
 export function useUserRepository() {
   const getUserInfo = () => {
     return authAxios.get(`${BASE_URL}/userInfo`)
+  }
+
+  const getUserByUserNumber = (userNumber) => {
+    return authAxios.get(`${BASE_URL}/userNumber`, { params: { userNumber } })
   }
 
   const getUserList = (page = 1) => {
@@ -48,6 +51,7 @@ export function useUserRepository() {
 
   return {
     getUserInfo,
+    getUserByUserNumber,
     getUserList,
     getAdminList,
     addUser,

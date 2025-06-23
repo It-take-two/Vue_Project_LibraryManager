@@ -12,6 +12,7 @@ const login = async (name, password) => {
     const { data } = await axios.post(`${API_BASE_URL}/login`, { name, password })
     localStorage.setItem('token', data.accessToken)
     localStorage.setItem('refreshToken', data.refreshToken)
+    console.log(localStorage.getItem("token"), "/n",localStorage.getItem('refreshToken'))
     await saveRoleName()
     return data.roleName
   } catch (err) {
@@ -29,6 +30,7 @@ const refresh = async () => {
   try {
     const { data } = await axios.post(`${API_BASE_URL}/refresh`, { refreshToken })
     localStorage.setItem('token', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
   } catch (err) {
     console.warn('刷新 token 失败:', err)
     logout()
