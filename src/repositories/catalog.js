@@ -1,4 +1,3 @@
-// src/repositories/catalog.js
 import authAxios from './interceptors'
 
 const BASE_URL = 'http://localhost:8080/catalog'
@@ -27,7 +26,6 @@ export function useCatalogRepository() {
     return authAxios.delete(`${BASE_URL}/${id}`)
   }
 
-  // 新增：通过 ISBN 获取书目信息
   const getCatalogByIsbn = (isbn) => {
     return authAxios.get(`${BASE_URL}/isbn`, { params: { isbn } })
   }

@@ -3,15 +3,16 @@
     <h2>管理员管理</h2>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <el-button type="primary" @click="dialogVisible = true">新增管理员</el-button>
+      <el-button type="primary" @click="openAddDialog">新增管理员</el-button>
     </div>
 
     <el-table :data="admins" border style="width: 100%">
       <el-table-column prop="name" label="姓名" />
       <el-table-column prop="username" label="用户名" />
       <el-table-column prop="phone" label="电话" />
-      <el-table-column label="操作" width="200">
+      <el-table-column label="操作" width="260">
         <template #default="{ row }">
+          <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
           <el-button size="small" @click="handleResetPassword(row.userId)">重置密码</el-button>
           <el-popconfirm title="确认删除该管理员？" @confirm="handleDeleteAdmin(row.userId)">
             <template #reference>
@@ -31,9 +32,9 @@
       style="margin-top: 16px; text-align: right;"
     />
 
-    <el-dialog v-model="dialogVisible" title="新增管理员">
+    <el-dialog v-model="dialogVisible" :title="isEditing ? '编辑管理员' : '新增管理员'">
       <el-form :model="form" label-width="80px">
-        <el-form-item label="用户名"><el-input v-model="form.username" /></el-form-item>
+        <el-form-item label="用户名"><el-input v-model="form.username" :readonly="isEditing"/></el-form-item>
         <el-form-item label="姓名"><el-input v-model="form.name" /></el-form-item>
         <el-form-item label="电话"><el-input v-model="form.phone" /></el-form-item>
       </el-form>
@@ -53,6 +54,7 @@ import { useUserRepository } from '../repositories/user'
 const {
   getAdminList,
   addUser,
+  updateUser,
   deleteUser,
   resetPassword
 } = useUserRepository()
@@ -61,6 +63,8 @@ const admins = ref([])
 const total = ref(0)
 const page = ref(1)
 const dialogVisible = ref(false)
+const isEditing = ref(false)
+const editingUserId = ref(null)
 
 const form = ref({
   username: '',
@@ -68,6 +72,17 @@ const form = ref({
   phone: '',
   roleName: 'admin'
 })
+
+const resetForm = () => {
+  Object.assign(form.value, {
+    username: '',
+    name: '',
+    phone: '',
+    roleName: 'admin'
+  })
+  isEditing.value = false
+  editingUserId.value = null
+}
 
 const fetchAdmins = async (newPage = page.value) => {
   page.value = newPage
@@ -80,20 +95,32 @@ const fetchAdmins = async (newPage = page.value) => {
   }
 }
 
+const openAddDialog = () => {
+  resetForm()
+  dialogVisible.value = true
+}
+
+const openEditDialog = (row) => {
+  isEditing.value = true
+  editingUserId.value = row.userId
+  Object.assign(form.value, row)
+  dialogVisible.value = true
+}
+
 const submitAdmin = async () => {
   try {
-    await addUser(form.value)
-    ElMessage.success('管理员添加成功')
+    if (isEditing.value) {
+      await updateUser(editingUserId.value, form.value)
+      ElMessage.success('管理员更新成功')
+    } else {
+      await addUser(form.value)
+      ElMessage.success('管理员添加成功')
+    }
     dialogVisible.value = false
-    Object.assign(form.value, {
-      username: '',
-      name: '',
-      phone: '',
-      roleName: 'admin'
-    })
-    fetchAdmins(1)
+    resetForm()
+    fetchAdmins(page.value)
   } catch {
-    ElMessage.error('添加管理员失败')
+    ElMessage.error(isEditing.value ? '管理员更新失败' : '添加管理员失败')
   }
 }
 

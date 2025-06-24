@@ -211,23 +211,40 @@
         @current-change="handleCollectionPageChange"
         style="margin-top: 15px; text-align: right;"
       />
-      <!-- 新增馆藏弹窗 -->
-      <el-dialog v-model="collectionDialogVisible" title="新增馆藏">
-        <el-form :model="collectionForm" label-width="100px" :rules="collectionRules" ref="collectionFormRef">
-          <el-form-item label="书目" prop="catalogId">
-            <el-select v-model="collectionForm.catalogId" placeholder="选择书目">
-              <el-option
-                v-for="item in catalogOptions"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              />
-            </el-select>
+      <el-dialog
+        v-model="collectionDialogVisible"
+        title="新增馆藏"
+        width="500px"
+      >
+        <el-form label-width="100px">
+          <el-form-item label="ISBN">
+            <el-input v-model="isbnInput" placeholder="请输入 ISBN" />
+            <el-button type="primary" @click="searchCatalogByIsbn" style="margin-top: 10px;">
+              查找
+            </el-button>
           </el-form-item>
+
+          <div v-if="!catalogNotFound && catalogInfo.name">
+            <el-descriptions title="书目信息" :column="1" border>
+              <el-descriptions-item label="书名">{{ catalogInfo.name }}</el-descriptions-item>
+              <el-descriptions-item label="作者">{{ catalogInfo.author }}</el-descriptions-item>
+              <el-descriptions-item label="分类">{{ catalogInfo.category }}</el-descriptions-item>
+              <el-descriptions-item label="出版社">{{ catalogInfo.publisher }}</el-descriptions-item>
+              <el-descriptions-item label="出版日期">{{ format(catalogInfo.publishDate) }}</el-descriptions-item>
+              <el-descriptions-item label="价值（¥）">{{ catalogInfo.value }}</el-descriptions-item>
+            </el-descriptions>
+          </div>
+
+          <div v-else-if="catalogNotFound" style="color: #f56c6c; margin-top: 10px;">
+            未找到书目信息，请前往“书目管理”新增
+          </div>
         </el-form>
+
         <template #footer>
           <el-button @click="collectionDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitCollection">确定</el-button>
+          <el-button type="primary" @click="submitCollection" :disabled="!catalogInfo.id">
+            确定
+          </el-button>
         </template>
       </el-dialog>
       <!-- 按类别搜索的分类弹窗（馆藏模块专用） -->
@@ -483,7 +500,10 @@ const collectionPage = ref(1)
 const collectionTotal = ref(0)
 const collectionSearch = reactive({ keyword: '' })
 const collectionDialogVisible = ref(false)
-const collectionForm = reactive({ catalogId: null })
+const catalogInfo = ref({})
+const catalogNotFound = ref(false)
+const isbnInput = ref('')
+
 // 供馆藏选择书目的数据
 const catalogOptions = ref([])
 
@@ -513,28 +533,47 @@ const loadCollectionList = async () => {
   }
 }
 
-// 打开新增馆藏弹窗
 const openCollectionDialog = () => {
-  collectionForm.catalogId = null
   collectionDialogVisible.value = true
+  catalogInfo.value = {}
+  catalogNotFound.value = false
+  isbnInput.value = ''
 }
 
-// 新增馆藏
-const collectionFormRef = ref(null)
-const collectionRules = {
-  catalogId: [{ required: true, message: '请选择书目', trigger: 'change' }]
-}
-const submitCollection = async () => {
-  if (!collectionForm.catalogId) return
+// 查找 ISBN 对应的书目
+const searchCatalogByIsbn = async () => {
+  if (!isbnInput.value) {
+    return ElMessage.warning('请输入 ISBN')
+  }
+
   try {
-    const res = await addCollection(collectionForm.catalogId)
+    const res = await getCatalogByIsbn(isbnInput.value)
     if (res.data) {
-      ElMessage.success('新增馆藏成功')
+      catalogInfo.value = res.data
+      catalogNotFound.value = false
+    } else {
+      catalogNotFound.value = true
+      ElMessage.warning('未找到书目信息，请先新增书目')
+    }
+  } catch (error) {
+    catalogNotFound.value = true
+    console.error('查找失败', error)
+    ElMessage.error('查找失败')
+  }
+}
+
+const submitCollection = async () => {
+  try {
+    const res = await addCollection(catalogInfo.value.id)
+    if (res.data) {
+      catalogInfo.value = {}
       collectionDialogVisible.value = false
+      catalogNotFound.value = false
+      isbnInput.value = ''
+      ElMessage.success('新增馆藏成功')
       loadCollectionList()
     }
   } catch (error) {
-    console.error('新增馆藏失败', error)
     ElMessage.error('新增馆藏失败')
   }
 }

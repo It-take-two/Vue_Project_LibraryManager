@@ -2,6 +2,20 @@
   <el-card class="borrow-manage-page">
     <h2>借阅记录管理</h2>
 
+    <el-form inline @submit.prevent>
+      <el-form-item>
+        <el-input
+          v-model="searchUserNumber"
+          placeholder="请输入学号/工号"
+          style="width: 240px"
+          clearable
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="searchBorrowsByUserNumber">搜索</el-button>
+      </el-form-item>
+    </el-form>
+
     <el-table
       :data="borrows"
       border
@@ -52,8 +66,16 @@
       style="margin-top: 16px; text-align: right"
     />
 
-    <el-dialog v-model="fineDialogVisible" title="标记为丢失">
-      <p>书籍：{{ fineTarget?.collectionName }} / 条码：{{ fineTarget?.barcode }}</p>
+    <el-dialog v-model="fineDialogVisible" title="罚款登记">
+      <el-descriptions :column="1" border style="margin-bottom: 16px">
+        <el-descriptions-item label="书名">{{ fineTarget?.collectionName }}</el-descriptions-item>
+        <el-descriptions-item label="分类">{{ fineTarget?.category }}</el-descriptions-item>
+        <el-descriptions-item label="作者">{{ fineTarget?.author }}</el-descriptions-item>
+        <el-descriptions-item label="出版社">{{ fineTarget?.publisher }}</el-descriptions-item>
+        <el-descriptions-item label="ISBN">{{ fineTarget?.isbn }}</el-descriptions-item>
+        <el-descriptions-item label="条码">{{ fineTarget?.barcode }}</el-descriptions-item>
+        <el-descriptions-item label="价值（¥）">{{ fineTarget?.value }}</el-descriptions-item>
+      </el-descriptions>
       <el-form :model="fineForm" label-width="80px" style="margin-top: 12px">
         <el-form-item label="罚款金额">
           <el-input-number
@@ -66,7 +88,7 @@
       </el-form>
       <template #footer>
         <el-button @click="fineDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitFine">登记罚款</el-button>
+        <el-button type="primary" @click="submitFine">提交</el-button>
       </template>
     </el-dialog>
 
@@ -79,7 +101,7 @@
         <el-descriptions-item label="出版社">{{ collectionDetail.publisher }}</el-descriptions-item>
         <el-descriptions-item label="ISBN">{{ collectionDetail.isbn }}</el-descriptions-item>
         <el-descriptions-item label="条码">{{ collectionDetail.barcode }}</el-descriptions-item>
-        <el-table-column prop="value" label="价值（¥）" />
+        <el-descriptions-item label="价值（¥）">{{ collectionDetail.value }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
 
@@ -88,7 +110,9 @@
       <el-descriptions v-if="userDetail" :column="1" border>
         <el-descriptions-item label="姓名">{{ userDetail.name }}</el-descriptions-item>
         <el-descriptions-item label="学号">{{ userDetail.userNumber }}</el-descriptions-item>
-        <el-descriptions-item label="角色">{{ userDetail.roleName }}</el-descriptions-item>
+        <el-descriptions-item label="角色">
+          {{ roleMap[userDetail.roleName] || userDetail.roleName }}
+        </el-descriptions-item>
         <el-descriptions-item label="电话">{{ userDetail.phone }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -102,14 +126,15 @@ import { useBorrowRepository } from '../repositories/borrow'
 import { useUserRepository } from '../repositories/user'
 import { useCollectionRepository } from '../repositories/collection'
 
-const { getAllBorrows, updateBorrow, deleteBorrow } = useBorrowRepository()
-const { getUserList } = useUserRepository()
+const { getAllBorrows, updateBorrow, deleteBorrow, getBorrowsByUser } = useBorrowRepository()
+const { getUserById, getUserByUserNumber } = useUserRepository()
 const { getCollectionById } = useCollectionRepository()
 
 const borrows = ref([])
 const total = ref(0)
 const page = ref(1)
 const loading = ref(false)
+const searchUserNumber = ref('')
 
 const fineDialogVisible = ref(false)
 const fineTarget = ref(null)
@@ -121,6 +146,45 @@ const collectionDetail = ref(null)
 const userDialogVisible = ref(false)
 const userDetail = ref(null)
 
+const roleMap = {
+  admin: '管理员',
+  teacher: '教师',
+  undergraduate: '本科生',
+  master: '研究生',
+  phd: '博士研究生',
+  vocational: '专科生'
+}
+
+const searchBorrowsByUserNumber = async () => {
+  if (!searchUserNumber.value.trim()) {
+    fetchData()
+    return
+  }
+
+  loading.value = true
+  try {
+    const userRes = await getUserByUserNumber(searchUserNumber.value.trim())
+    const user = userRes.data
+    if (!user) {
+      ElMessage.warning('未找到该用户')
+      return
+    }
+
+    const borrowsRes = await getBorrowsByUser(user.userId, 1)
+    const records = borrowsRes.data.records
+
+    borrows.value = await Promise.all(records.map(enrichBorrowRecord))
+    total.value = borrowsRes.data.total
+    page.value = 1
+  } catch {
+    ElMessage.error('搜索失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+
+
 const formatDate = (iso) => {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -129,9 +193,8 @@ const formatDate = (iso) => {
 
 const getUserName = async (userId) => {
   try {
-    const res = await getUserList(1)
-    const user = res.data.records.find(u => u.userId === userId)
-    return user?.name || '未知用户'
+    const res = await getUserById(userId)
+    return res.data.name
   } catch {
     return '未知用户'
   }
@@ -148,6 +211,9 @@ const enrichBorrowRecord = async (record) => {
     collectionName: collection.name,
     barcode: collection.barcode,
     category: collection.category,
+    author: collection.author,
+    publisher: collection.publisher,
+    isbn: collection.isbn,
     value: collection.value,
     borrowDateFormatted: formatDate(record.borrowDate),
     returnDeadlineFormatted: formatDate(record.returnDeadline),
@@ -215,10 +281,10 @@ const showCollectionDetail = async (row) => {
 
 const showUserDetail = async (row) => {
   try {
-    const res = await getUserList(1)
-    const user = res.data.records.find(u => u.userId === row.userId)
+    const user = await getUserById(row.userId)
+    console.log(user.data)
     if (user) {
-      userDetail.value = user
+      userDetail.value = user.data
       userDialogVisible.value = true
     } else {
       ElMessage.error('未找到用户信息')
