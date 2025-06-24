@@ -1,9 +1,11 @@
 <template>
   <div class="report-view">
     <el-card>
-      <div class="card-header">
-        <span>报表列表</span>
-        <el-button type="primary" size="small" @click="handleExport">
+        <div class="text">
+           <h2>报表列表</h2>         
+        </div> 
+      <div class="card-header" style="position: relative;">
+        <el-button type="primary" @click="handleExport">
           导出报表
         </el-button>
       </div>
@@ -28,7 +30,6 @@
 import { ref, onMounted } from 'vue'
 import { useReportRepository } from '../repositories/report'
 
-// 自定义格式化函数，将 ISO 字符串转换为 "YYYY-MM-DD HH:mm:ss" 格式
 function formatTime(time) {
   if (!time) return ''
   const date = new Date(time)
@@ -88,6 +89,11 @@ onMounted(() => {
 <style scoped>
 .report-view {
   padding: 20px;
+  margin-top: 4px;
+}
+
+.text {
+  margin-top: 40px;
 }
 
 .card-header {

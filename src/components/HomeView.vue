@@ -1,12 +1,23 @@
 <template>
-
   <div class="home-page">
     <div class="header">
       <h1>欢迎来到图书馆 📚</h1>
       <p class="subtitle">发现一本好书，就是遇见另一个世界。</p>
     </div>
 
-    <el-divider content-position="left">📘 推荐可借图书</el-divider>
+    <el-divider>
+      <div class="book-module-header">
+        <span>📘 推荐可借图书</span>
+        <el-button
+          type="text"
+          icon="el-icon-refresh"
+          class="refresh-button"
+          @click="loadBooks"
+        >
+          换一换
+        </el-button>
+      </div>
+    </el-divider>
 
     <el-row :gutter="20" v-loading="loading" class="book-list">
       <el-col v-for="book in books" :key="book.id" :span="8">
@@ -22,7 +33,6 @@
       </el-col>
     </el-row>
 
-    <!-- 图书详情弹窗 -->
     <el-dialog v-model="dialogVisible" :title="detail.name || '图书详情'" width="500px">
       <el-descriptions :column="1" border v-if="detail.id">
         <el-descriptions-item label="作者">{{ detail.author }}</el-descriptions-item>
@@ -84,6 +94,18 @@ onMounted(loadBooks)
   font-size: 1.1rem;
   margin-top: 0.5rem;
 }
+
+.book-module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.refresh-button {
+  font-size: 14px;
+  margin-right: 1rem;
+}
+
 .book-list {
   margin-top: 1rem;
 }

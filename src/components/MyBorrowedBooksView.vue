@@ -9,7 +9,11 @@
           <el-table-column prop="borrowDate" label="借出时间" :formatter="formatDate" />
           <el-table-column prop="returnDeadline" label="应还时间" :formatter="formatDate" />
           <el-table-column prop="returnDate" label="归还时间" :formatter="formatReturn" />
-          <el-table-column label="状态" :formatter="(_, row) => formatStatus(row)" />
+          <el-table-column label="状态" min-width="120" align="center" header-align="center">
+            <template #default="{ row }">
+              <el-tag :type="getStatusTagType(row)">{{ formatStatus(row) }}</el-tag>
+            </template>
+          </el-table-column>
         </el-table>
         <div class="pagination">
           <el-pagination
@@ -29,7 +33,11 @@
           <el-table-column prop="borrowDate" label="借出时间" :formatter="formatDate" />
           <el-table-column prop="returnDeadline" label="应还时间" :formatter="formatDate" />
           <el-table-column prop="renewedTimes" label="续借次数" />
-          <el-table-column label="状态" :formatter="(row) => formatStatus(row)" />
+          <el-table-column label="状态" min-width="120" align="center" header-align="center">
+            <template #default="{ row }">
+              <el-tag :type="getStatusTagType(row)">{{ formatStatus(row) }}</el-tag>
+            </template>
+          </el-table-column>
         </el-table>
         <div class="pagination">
           <el-pagination
@@ -51,10 +59,18 @@
         <el-descriptions-item label="出版社">{{ detail.publisher }}</el-descriptions-item>
         <el-descriptions-item label="ISBN">{{ detail.isbn }}</el-descriptions-item>
         <el-descriptions-item label="分类">{{ detail.category }}</el-descriptions-item>
-        <el-descriptions-item label="出版时间">{{ formatDate(null, null, detail.publishDate) }}</el-descriptions-item>
-        <el-descriptions-item label="借出时间">{{ formatDate(null, null, detail.borrowDate) }}</el-descriptions-item>
-        <el-descriptions-item label="应还时间">{{ formatDate(null, null, detail.returnDeadline) }}</el-descriptions-item>
-        <el-descriptions-item label="归还时间">{{ formatReturn(null, null, detail.returnDate) }}</el-descriptions-item>
+        <el-descriptions-item label="出版时间">
+          {{ formatDate(null, null, detail.publishDate) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="借出时间">
+          {{ formatDate(null, null, detail.borrowDate) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="应还时间">
+          {{ formatDate(null, null, detail.returnDeadline) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="归还时间">
+          {{ formatReturn(null, null, detail.returnDate) }}
+        </el-descriptions-item>
         <el-descriptions-item label="续借次数">{{ detail.renewedTimes }}</el-descriptions-item>
         <el-descriptions-item
           v-if="formatStatus(detail) === '逾期未还'"
@@ -62,7 +78,6 @@
         >
           {{ detail.value && Number(detail.value) > 0 ? detail.value + ' 元' : '—' }}
         </el-descriptions-item>
-
         <el-descriptions-item
           v-if="formatStatus(detail) === '逾期未还'"
           label="是否已赔偿"
@@ -101,11 +116,20 @@ const formatReturn = (_, __, val) => (val ? val.slice(0, 10) : '未归还')
 const isCompensated = (row) => Number(row.finePaid || 0) > 0
 
 const formatStatus = (row) => {
-  console.log(row)
   if (row.returnDate) return isCompensated(row) ? '已赔偿' : '已归还'
   const now = new Date()
   const deadline = new Date(row.returnDeadline)
   return now > deadline ? '逾期未还' : '借阅中'
+}
+
+const getStatusTagType = (row) => {
+  if (row.returnDate) {
+    return isCompensated(row) ? 'danger' : 'success'
+  } else {
+    const now = new Date()
+    const deadline = new Date(row.returnDeadline)
+    return now > deadline ? 'danger' : 'warning'
+  }
 }
 
 const enrichWithCollection = async (records) => {

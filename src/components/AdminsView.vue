@@ -13,12 +13,20 @@
       <el-table-column label="操作" width="260">
         <template #default="{ row }">
           <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-          <el-button size="small" @click="handleResetPassword(row.userId)">重置密码</el-button>
-          <el-popconfirm title="确认删除该管理员？" @confirm="handleDeleteAdmin(row.userId)">
-            <template #reference>
-              <el-button size="small" type="danger">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <el-button
+            size="small"
+            type="primary"
+            @click="handleResetPassword(row.userId)"
+          >
+            重置密码
+          </el-button>
+          <el-button
+            size="small"
+            type="danger"
+            @click="handleDeleteAdmin(row.userId)"
+          >
+            删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -32,11 +40,17 @@
       style="margin-top: 16px; text-align: right;"
     />
 
-    <el-dialog v-model="dialogVisible" :title="isEditing ? '编辑管理员' : '新增管理员'">
-      <el-form :model="form" label-width="80px">
-        <el-form-item label="用户名"><el-input v-model="form.username" :readonly="isEditing"/></el-form-item>
-        <el-form-item label="姓名"><el-input v-model="form.name" /></el-form-item>
-        <el-form-item label="电话"><el-input v-model="form.phone" /></el-form-item>
+    <el-dialog v-model="dialogVisible" :title="isEditing ? '编辑管理员' : '新增管理员'" width="400px">
+      <el-form :model="form" :rules="adminRules" ref="adminFormRef" label-width="80px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" :readonly="isEditing" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="form.name" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item label="电话">
+          <el-input v-model="form.phone" placeholder="请输入电话号码" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -48,7 +62,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserRepository } from '../repositories/user'
 
 const {
@@ -72,6 +86,16 @@ const form = ref({
   phone: '',
   roleName: 'admin'
 })
+const adminRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
+  ],
+  name: [
+    { required: true, message: '请输入姓名', trigger: 'blur' }
+  ]
+}
+
+const adminFormRef = ref(null)
 
 const resetForm = () => {
   Object.assign(form.value, {
@@ -108,39 +132,58 @@ const openEditDialog = (row) => {
 }
 
 const submitAdmin = async () => {
-  try {
-    if (isEditing.value) {
-      await updateUser(editingUserId.value, form.value)
-      ElMessage.success('管理员更新成功')
-    } else {
-      await addUser(form.value)
-      ElMessage.success('管理员添加成功')
+  adminFormRef.value.validate(async valid => {
+    if (!valid) return
+    try {
+      if (isEditing.value) {
+        await updateUser(editingUserId.value, form.value)
+        ElMessage.success('管理员更新成功')
+      } else {
+        await addUser(form.value)
+        ElMessage.success('管理员添加成功')
+      }
+      dialogVisible.value = false
+      resetForm()
+      fetchAdmins(page.value)
+    } catch {
+      ElMessage.error(isEditing.value ? '管理员更新失败' : '添加管理员失败')
     }
-    dialogVisible.value = false
-    resetForm()
-    fetchAdmins(page.value)
-  } catch {
-    ElMessage.error(isEditing.value ? '管理员更新失败' : '添加管理员失败')
-  }
+  })
 }
 
 const handleResetPassword = async (userId) => {
   try {
+    await ElMessageBox.confirm(
+      '确认重置该管理员密码？重置后密码将变为123456。',
+      '提示',
+      {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
     await resetPassword(userId)
     ElMessage.success('密码已重置')
     fetchAdmins(page.value)
-  } catch {
-    ElMessage.error('重置密码失败')
+  } catch (error) {
   }
 }
 
 const handleDeleteAdmin = async (userId) => {
   try {
+    await ElMessageBox.confirm(
+      '确认删除该管理员？',
+      '提示',
+      {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
     await deleteUser(userId)
     ElMessage.success('管理员删除成功')
     fetchAdmins(page.value)
-  } catch {
-    ElMessage.error('删除失败')
+  } catch (error) {
   }
 }
 
@@ -152,5 +195,7 @@ onMounted(() => fetchAdmins())
   max-width: 960px;
   margin: auto;
   padding: 24px;
+  margin-top: 24px;
+  margin-bottom: 24px;
 }
 </style>

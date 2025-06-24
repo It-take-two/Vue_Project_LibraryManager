@@ -12,7 +12,6 @@ export function useCatalogRepository() {
   }
 
   const addCatalog = (payload) => {
-    // payload 结构见 CatalogRequest：name, isbn, publisher, category, publishDate, author, value
     return authAxios.post(`${BASE_URL}/add`, payload)
   }
 

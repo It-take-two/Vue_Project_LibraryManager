@@ -7,11 +7,10 @@
       <el-radio-button label="return">还书</el-radio-button>
     </el-radio-group>
 
-    <!-- 借书模式下的用户查询 -->
     <div v-if="mode === 'borrow'">
       <el-form inline @submit.prevent>
-        <el-form-item label="用户学号">
-          <el-input v-model="userNumber" placeholder="请输入学号" clearable />
+        <el-form-item label="学号/工号">
+          <el-input v-model="userNumber" placeholder="请输入学号/工号" clearable />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="fetchUser">查询用户</el-button>
@@ -28,7 +27,6 @@
       <el-divider />
     </div>
 
-    <!-- 条码查询 -->
     <el-form inline @submit.prevent>
       <el-form-item label="书籍条码">
         <el-input v-model="barcode" placeholder="请输入条码" clearable />
@@ -40,7 +38,6 @@
       </el-form-item>
     </el-form>
 
-    <!-- 借书卡片 -->
     <el-card v-if="mode === 'borrow' && collection" class="collection-card">
       <el-descriptions title="书籍详情" :column="1" border>
         <el-descriptions-item label="书名">{{ collection.name }}</el-descriptions-item>
@@ -85,7 +82,6 @@
       </el-card>
     </el-card>
 
-    <!-- 还书卡片 -->
     <el-card v-if="mode === 'return' && borrow" class="borrow-card">
       <el-descriptions title="图书详情" :column="1" border>
         <el-descriptions-item label="书名">{{ collection.name }}</el-descriptions-item>
@@ -171,8 +167,8 @@ const borrowUserDetail = ref(null)
 
 const roleMap = {
   teacher: '教师',
-  vocational: '专科生',
-  undergraduate: '本科生',
+  vocational: '高职',
+  undergraduate: '本科',
   master: '硕士研究生',
   phd: '博士研究生',
 }
@@ -185,6 +181,9 @@ const fetchUser = async () => {
   try {
     const res = await getUserByUserNumber(userNumber.value)
     user.value = res.data
+    if (user.value && user.value.roleName) {
+      user.value.roleName = roleMap[user.value.roleName] || user.value.roleName
+    }
     ElMessage.success('用户加载成功')
   } catch {
     user.value = null
@@ -204,6 +203,9 @@ const handleSearch = async () => {
       borrow.value = b.data
       const u = await getUserById(borrow.value.userId)
       borrowUser.value = u.data
+      if (borrowUser.value && borrowUser.value.roleName) {
+        borrowUser.value.roleName = roleMap[borrowUser.value.roleName] || borrowUser.value.roleName
+      }
     }
 
     if (mode.value === 'return') {
@@ -211,6 +213,9 @@ const handleSearch = async () => {
       borrow.value = b.data
       const u = await getUserById(borrow.value.userId)
       borrowUser.value = u.data
+      if (borrowUser.value && borrowUser.value.roleName) {
+        borrowUser.value.roleName = roleMap[borrowUser.value.roleName] || borrowUser.value.roleName
+      }
     }
 
     ElMessage.success('信息加载成功')
@@ -299,6 +304,9 @@ const handleShowBorrowUser = async () => {
   try {
     const res = await getUserById(borrow.value.userId)
     borrowUserDetail.value = res.data
+    if (borrowUserDetail.value && borrowUserDetail.value.roleName) {
+      borrowUserDetail.value.roleName = roleMap[borrowUserDetail.value.roleName] || borrowUserDetail.value.roleName
+    }
     borrowUserDialogVisible.value = true
   } catch {
     ElMessage.error('加载借阅人信息失败')
@@ -318,11 +326,14 @@ watch(mode, () => {
 })
 </script>
 
+
 <style scoped>
 .borrow-return-page {
   max-width: 780px;
   margin: auto;
   padding: 24px;
+  margin-top: 24px;
+  margin-bottom: 24px;
 }
 .collection-card,
 .borrow-card {
