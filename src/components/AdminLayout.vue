@@ -1,18 +1,17 @@
 <template>
   <div class="layout">
-    <!-- 顶部导航 -->
     <header class="topbar">
       <div class="left">
         <el-button :icon="navIcon" circle @click="toggleSidebar" />
         <h2 class="title">管理员后台</h2>
       </div>
       <div class="right">
+        <span class="greeting">你好, {{ username }}</span>
         <el-button type="primary" @click="router.push('/admin/profile')">个人中心</el-button>
         <el-button type="danger" @click="handleLogout">退出登录</el-button>
       </div>
     </header>
 
-    <!-- 主体布局 -->
     <div class="main">
       <aside class="sidebar" v-show="showSidebar">
         <el-menu
@@ -57,13 +56,21 @@ const handleLogout = async () => {
   router.push('/login')
 }
 
-const isRootAdmin = () => {
-    return getUserInfo().data.username === 'root'
-}
 
-onMounted(() => {
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-  isRootAdmin.value = userInfo.role === 'root'
+const isRootAdmin = ref(false)
+const username = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await getUserInfo()
+    const userInfo = res.data
+    username.value = userInfo.username || ''
+    isRootAdmin.value = (userInfo.username === 'root' || userInfo.role === 'root')
+  } catch (err) {
+    console.error('获取用户信息失败:', err)
+    username.value = ''
+    isRootAdmin.value = false
+  }
 })
 </script>
 
@@ -96,8 +103,12 @@ onMounted(() => {
 .topbar .right {
   display: flex;
   gap: 1rem;
+  align-items: center;
 }
-
+.greeting {
+  font-size: 1rem;
+  color: #333;
+}
 .main {
   display: flex;
   flex: 1;

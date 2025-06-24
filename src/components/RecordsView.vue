@@ -2,25 +2,25 @@
   <el-card class="borrow-manage-page">
     <h2>借阅记录管理</h2>
 
-    <el-form inline @submit.prevent>
-      <el-form-item>
+    <div class="search-header">
+      <div class="left">
         <el-input
           v-model="searchUserNumber"
           placeholder="请输入学号/工号"
-          style="width: 240px"
+          style="width: 240px;"
           clearable
+          @clear="fetchData"
+          @keyup.enter="searchBorrowsByUserNumber"
         />
-      </el-form-item>
-      <el-form-item>
         <el-button type="primary" @click="searchBorrowsByUserNumber">搜索</el-button>
-      </el-form-item>
-    </el-form>
+      </div>
+    </div>
 
     <el-table
       :data="borrows"
       border
       v-loading="loading"
-      style="margin-top: 16px"
+      style="width: 100%; margin-top: 16px;"
     >
       <el-table-column label="书名">
         <template #default="{ row }">
@@ -29,9 +29,7 @@
           </el-link>
         </template>
       </el-table-column>
-
       <el-table-column prop="barcode" label="条码" />
-      
       <el-table-column label="借阅人">
         <template #default="{ row }">
           <el-link type="primary" @click="showUserDetail(row)">
@@ -39,20 +37,14 @@
           </el-link>
         </template>
       </el-table-column>
-
       <el-table-column prop="borrowDateFormatted" label="借书时间" />
       <el-table-column prop="returnDeadlineFormatted" label="应还时间" />
       <el-table-column prop="returnDateFormatted" label="归还时间" />
       <el-table-column prop="finePaid" label="罚款" />
-      
-      <el-table-column label="操作" width="260">
+      <el-table-column label="操作" width="180">
         <template #default="{ row }">
           <el-button size="small" type="danger" @click="confirmDelete(row.id)">删除</el-button>
-          <el-button
-            size="small"
-            type="warning"
-            @click="openFineDialog(row)"
-          >罚款</el-button>
+          <el-button size="small" type="warning" @click="openFineDialog(row)">罚款</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -63,7 +55,7 @@
       :page-size="12"
       :total="total"
       @current-change="fetchData"
-      style="margin-top: 16px; text-align: right"
+      style="margin-top: 16px; text-align: right;"
     />
 
     <el-dialog v-model="fineDialogVisible" title="罚款登记">
@@ -76,7 +68,7 @@
         <el-descriptions-item label="条码">{{ fineTarget?.barcode }}</el-descriptions-item>
         <el-descriptions-item label="价值（¥）">{{ fineTarget?.value }}</el-descriptions-item>
       </el-descriptions>
-      <el-form :model="fineForm" label-width="80px" style="margin-top: 12px">
+      <el-form :model="fineForm" label-width="8px" style="margin-top: 12px">
         <el-form-item label="罚款金额">
           <el-input-number
             v-model="fineForm.finePaid"
@@ -92,7 +84,6 @@
       </template>
     </el-dialog>
 
-    <!-- 书籍详情 -->
     <el-dialog v-model="collectionDialogVisible" title="图书详情" width="400px">
       <el-descriptions v-if="collectionDetail" :column="1" border>
         <el-descriptions-item label="书名">{{ collectionDetail.name }}</el-descriptions-item>
@@ -105,7 +96,6 @@
       </el-descriptions>
     </el-dialog>
 
-    <!-- 用户详情 -->
     <el-dialog v-model="userDialogVisible" title="用户详情" width="400px">
       <el-descriptions v-if="userDetail" :column="1" border>
         <el-descriptions-item label="姓名">{{ userDetail.name }}</el-descriptions-item>
@@ -183,8 +173,6 @@ const searchBorrowsByUserNumber = async () => {
   }
 }
 
-
-
 const formatDate = (iso) => {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -238,7 +226,15 @@ const fetchData = async (p = page.value) => {
 
 const confirmDelete = async (id) => {
   try {
-    await ElMessageBox.confirm('确认删除该借阅记录？', '警告', { type: 'warning' })
+    await ElMessageBox.confirm(
+      '确认删除该借阅记录？',
+      '警告',
+      { 
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
     await deleteBorrow(id)
     ElMessage.success('记录已删除')
     fetchData()
@@ -282,7 +278,6 @@ const showCollectionDetail = async (row) => {
 const showUserDetail = async (row) => {
   try {
     const user = await getUserById(row.userId)
-    console.log(user.data)
     if (user) {
       userDetail.value = user.data
       userDialogVisible.value = true
@@ -299,8 +294,22 @@ onMounted(() => fetchData())
 
 <style scoped>
 .borrow-manage-page {
-  max-width: 1000px;
+  max-width: 94%;
   margin: auto;
+  margin-top: 24px;
+  margin-bottom: 24px;
   padding: 24px;
+}
+
+.search-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.search-header .left {
+  display: flex;
+  gap: 8px;
 }
 </style>

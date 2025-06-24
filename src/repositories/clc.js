@@ -1,4 +1,3 @@
-// src/repositories/clcRepository.js
 import authAxios from './interceptors'
 
 const BASE_URL = 'http://localhost:8080/clc'

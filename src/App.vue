@@ -37,8 +37,6 @@ html, body {
   margin: 0;
 }
 
-
-/* 滚动条美化（可选） */
 ::-webkit-scrollbar {
   width: 6px;
 }

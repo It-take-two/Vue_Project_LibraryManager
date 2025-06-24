@@ -1,6 +1,5 @@
 <template>
   <div class="borrow-view">
-    <!-- 操作栏 -->
     <section class="toolbar">
       <el-button type="primary" @click="categoryDialogVisible = true">
         {{ selectedClcLabel || '选择分类' }}
@@ -8,7 +7,6 @@
       <el-button type="info" @click="dialogVisible = true">借书规则</el-button>
     </section>
 
-    <!-- 图书列表 -->
     <el-row :gutter="20" class="book-grid" v-loading="loading">
       <el-col
         v-for="book in books"
@@ -33,7 +31,6 @@
       </el-col>
     </el-row>
 
-    <!-- 分页器 -->
     <el-pagination
       class="pagination"
       v-model:current-page="currentPage"
@@ -44,8 +41,13 @@
       @current-change="loadBooks"
     />
 
-    <!-- 分类弹窗 -->
-    <el-dialog v-model="categoryDialogVisible" title="选择分类" width="500px">
+    <el-dialog v-model="categoryDialogVisible" width="500px">
+      <template #title>
+        <div class="dialog-header">
+          <span>选择分类</span>
+          <el-button type="text" size="small" @click="clearClc">清除分类</el-button>
+        </div>
+      </template>
       <el-collapse v-model="expandedCategories">
         <el-collapse-item
           v-for="clc in clcOptions"
@@ -68,35 +70,77 @@
       </el-collapse>
     </el-dialog>
 
-    <!-- 借阅规则弹窗 -->
     <el-dialog v-model="dialogVisible" title="借书规则" width="600px">
-      <el-table :data="rules" border v-loading="rulesLoading">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="maxBooks" label="最大借书数" />
-        <el-table-column prop="durationDays" label="借阅天数" />
+      <el-table
+        :data="rules"
+        border
+        v-loading="rulesLoading"
+        style="width: 100%;"
+        :cell-style="cellStyle"
+        :header-cell-style="headerCellStyle"
+      >
         <el-table-column
-          prop="renewable"
-          label="可续借"
-          :formatter="val => val ? '是' : '否'"
+          prop="roleName"
+          label="身份"
+          min-width="120"
+          align="center"
+          header-align="center"
+          :formatter="formatRoleName"
+        />
+        <el-table-column
+          prop="maxBooks"
+          label="最大借书数"
+          min-width="120"
+          align="center"
+          header-align="center"
+        />
+        <el-table-column
+          prop="loanDays"
+          label="借阅天数"
+          min-width="120"
+          align="center"
+          header-align="center"
+        />
+        <el-table-column
+          prop="renewTimes"
+          label="续借次数"
+          min-width="120"
+          align="center"
+          header-align="center"
         />
       </el-table>
     </el-dialog>
 
-    <!-- 图书详情 -->
     <el-dialog
       v-model="detailVisible"
       :title="detail.name || '图书详情'"
       width="500px"
     >
       <el-descriptions :column="1" border v-if="detail.id">
-        <el-descriptions-item label="作者">{{ detail.author }}</el-descriptions-item>
-        <el-descriptions-item label="出版社">{{ detail.publisher }}</el-descriptions-item>
-        <el-descriptions-item label="ISBN">{{ detail.isbn }}</el-descriptions-item>
-        <el-descriptions-item label="分类">{{ detail.category }}</el-descriptions-item>
-        <el-descriptions-item label="出版时间">{{ format(detail.publishDate) }}</el-descriptions-item>
-        <el-descriptions-item label="存入时间">{{ format(detail.storageDate) }}</el-descriptions-item>
-        <el-descriptions-item label="条码">{{ detail.barcode }}</el-descriptions-item>
-        <el-descriptions-item label="价值">{{ detail.value }} 元</el-descriptions-item>
+        <el-descriptions-item label="作者">
+          {{ detail.author }}
+        </el-descriptions-item>
+        <el-descriptions-item label="出版社">
+          {{ detail.publisher }}
+        </el-descriptions-item>
+        <el-descriptions-item label="ISBN">
+          {{ detail.isbn }}
+        </el-descriptions-item>
+        <el-descriptions-item label="分类">
+          {{ detail.category }}
+        </el-descriptions-item>
+        <el-descriptions-item label="出版时间">
+          {{ format(detail.publishDate) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="存入时间">
+          {{ format(detail.storageDate) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="条码">
+          {{ detail.barcode }}
+        </el-descriptions-item>
+        <el-descriptions-item label="价值">
+          {{ detail.value }} 元
+        </el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag :type="detail.isBorrowable ? 'success' : 'info'">
             {{ detail.isBorrowable ? '可借' : '不可借' }}
@@ -156,6 +200,14 @@ const selectClc = (clc) => {
   loadBooks()
 }
 
+const clearClc = () => {
+  selectedClc.value = null
+  selectedClcLabel.value = ''
+  categoryDialogVisible.value = false
+  currentPage.value = 1
+  loadBooks()
+}
+
 const showDetail = async (item) => {
   const res = await getCollectionByBarcode(item.barcode)
   detail.value = res.data
@@ -172,6 +224,20 @@ watch(dialogVisible, async (open) => {
 })
 
 const format = (date) => date?.slice(0, 10) || '—'
+
+const formatRoleName = (row, column, cellValue) => {
+  const roleMap = {
+    teacher: '教师',
+    vocational: '高职',
+    undergraduate: '本科',
+    master: '硕士研究生',
+    phd: '博士研究生'
+  }
+  return roleMap[row.roleName] || row.roleName || cellValue
+}
+
+const cellStyle = () => ({ textAlign: 'center' })
+const headerCellStyle = () => ({ textAlign: 'center' })
 
 onMounted(() => {
   loadClcOptions()
@@ -222,5 +288,11 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 0.5rem;
   padding-top: 0.5rem;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

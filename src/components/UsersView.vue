@@ -2,7 +2,6 @@
   <el-card class="user-manage-page">
     <h2>用户管理</h2>
 
-    <!-- 搜索与添加 -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
       <div style="display: flex; gap: 8px;">
         <el-input
@@ -18,29 +17,25 @@
       <el-button type="primary" @click="openAddDialog">新增用户</el-button>
     </div>
 
-    <!-- 用户表格 -->
     <el-table :data="users" border style="width: 100%">
       <el-table-column prop="name" label="姓名" />
       <el-table-column prop="userNumber" label="学号/工号" />
       <el-table-column label="角色">
-        <template #default="{ row }">{{ roleMap[row.roleName] || row.roleName }}</template>
+        <template #default="{ row }">
+          {{ roleMap[row.roleName] || row.roleName }}
+        </template>
       </el-table-column>
       <el-table-column prop="username" label="用户名" />
       <el-table-column prop="phone" label="电话" />
       <el-table-column label="操作" width="280">
         <template #default="{ row }">
           <el-button size="small" @click="openEditDialog(row)">编辑</el-button>
-          <el-button size="small" @click="handleResetPassword(row.userId)">重置密码</el-button>
-          <el-popconfirm title="确认删除该用户？" @confirm="handleDeleteUser(row.userId)">
-            <template #reference>
-              <el-button size="small" type="danger">删除</el-button>
-            </template>
-          </el-popconfirm>
+          <el-button size="small" type="primary" @click="handleResetPassword(row.userId)">重置密码</el-button>
+          <el-button size="small" type="danger" @click="handleDeleteUser(row.userId)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <!-- 分页 -->
     <el-pagination
       layout="prev, pager, next"
       :total="total"
@@ -50,18 +45,29 @@
       style="margin-top: 16px; text-align: right;"
     />
 
-    <!-- 添加/编辑用户弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="isEditing ? '编辑用户' : '新增用户'">
-      <el-form :model="form" label-width="80px">
-        <el-form-item label="用户名"><el-input v-model="form.username" :readonly="isEditing"/></el-form-item>
-        <el-form-item label="姓名"><el-input v-model="form.name" /></el-form-item>
-        <el-form-item label="角色">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="isEditing ? '编辑用户' : '新增用户'"
+      width="400px"
+    >
+      <el-form :model="form" :rules="userRules" ref="userFormRef" label-width="80px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" :readonly="isEditing" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="form.name" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item label="角色" prop="roleName">
           <el-select v-model="form.roleName" placeholder="请选择角色">
             <el-option v-for="role in roles" :key="role" :label="roleMap[role]" :value="role" />
           </el-select>
         </el-form-item>
-        <el-form-item label="电话"><el-input v-model="form.phone" /></el-form-item>
-        <el-form-item label="学号"><el-input v-model="form.userNumber" /></el-form-item>
+        <el-form-item label="电话" prop="phone">
+          <el-input v-model="form.phone" placeholder="请输入电话号码" />
+        </el-form-item>
+        <el-form-item label="学号" prop="userNumber">
+          <el-input v-model="form.userNumber" placeholder="请输入学号/工号" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -73,7 +79,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserRepository } from '../repositories/user'
 
 const {
@@ -94,9 +100,9 @@ const searchNumber = ref('')
 const roles = ['teacher', 'vocational', 'undergraduate', 'master', 'phd']
 const roleMap = {
   teacher: '教师',
-  vocational: '专科生',
-  undergraduate: '本科生',
-  master: '研究生',
+  vocational: '高职',
+  undergraduate: '本科',
+  master: '硕士研究生',
   phd: '博士研究生'
 }
 
@@ -111,8 +117,29 @@ const form = ref({
 const isEditing = ref(false)
 const editingUserId = ref(null)
 
+const userRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
+  ],
+  name: [
+    { required: true, message: '请输入姓名', trigger: 'blur' }
+  ],
+  roleName: [
+    { required: true, message: '请选择角色', trigger: 'change' }
+  ],
+  phone: [
+    { required: true, message: '请输入电话', trigger: 'blur' }
+  ],
+  userNumber: [
+    { required: true, message: '请输入学号/工号', trigger: 'blur' }
+  ]
+}
+
+const userFormRef = ref(null)
+
 const resetForm = () => {
   Object.assign(form.value, {
+    username: '',
     name: '',
     roleName: '',
     phone: '',
@@ -159,39 +186,58 @@ const openEditDialog = (row) => {
 }
 
 const submitUser = async () => {
-  try {
-    if (isEditing.value) {
-      await updateUser(editingUserId.value, form.value)
-      ElMessage.success('用户信息已更新')
-    } else {
-      await addUser(form.value)
-      ElMessage.success('用户添加成功')
+  userFormRef.value.validate(async valid => {
+    if (!valid) return
+    try {
+      if (isEditing.value) {
+        await updateUser(editingUserId.value, form.value)
+        ElMessage.success('用户信息已更新')
+      } else {
+        await addUser(form.value)
+        ElMessage.success('用户添加成功')
+      }
+      dialogVisible.value = false
+      resetForm()
+      fetchUsers(page.value)
+    } catch {
+      ElMessage.error(isEditing.value ? '更新用户失败' : '添加用户失败')
     }
-    dialogVisible.value = false
-    resetForm()
-    fetchUsers(page.value)
-  } catch {
-    ElMessage.error(isEditing.value ? '更新用户失败' : '添加用户失败')
-  }
+  })
 }
 
 const handleResetPassword = async (userId) => {
   try {
+    await ElMessageBox.confirm(
+      '确认重置该用户密码？重置后密码将为默认值123456。',
+      '提示',
+      {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
     await resetPassword(userId)
     ElMessage.success('密码已重置为默认')
     fetchUsers(page.value)
-  } catch {
-    ElMessage.error('重置密码失败')
+  } catch (error) {
   }
 }
 
 const handleDeleteUser = async (userId) => {
   try {
+    await ElMessageBox.confirm(
+      '确认删除该用户？',
+      '提示',
+      {
+        type: 'warning',
+        confirmButtonText: '确定',
+        cancelButtonText: '取消'
+      }
+    )
     await deleteUser(userId)
     ElMessage.success('用户删除成功')
     fetchUsers(page.value)
-  } catch {
-    ElMessage.error('删除用户失败')
+  } catch (error) {
   }
 }
 
@@ -203,5 +249,7 @@ onMounted(() => fetchUsers())
   max-width: 960px;
   margin: auto;
   padding: 24px;
+  margin-top: 24px;
+  margin-bottom: 24px;
 }
 </style>

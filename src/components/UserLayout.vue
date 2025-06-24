@@ -1,18 +1,17 @@
 <template>
   <div class="layout">
-    <!-- 顶部导航 -->
     <header class="topbar">
       <div class="left">
         <el-button :icon="navIcon" circle @click="toggleSidebar" />
         <h2 class="title">图书借阅系统</h2>
       </div>
       <div class="right">
+        <span class="greeting">你好，{{ userName }}</span>
         <el-button type="primary" @click="router.push('/profile')">个人中心</el-button>
         <el-button type="danger" @click="handleLogout">退出登录</el-button>
       </div>
     </header>
 
-    <!-- 主体布局 -->
     <div class="main">
       <aside class="sidebar" v-show="showSidebar">
         <el-menu
@@ -71,6 +70,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../repositories/auth'
 import { useBorrowRepository } from '../repositories/borrow'
 import { useCollectionRepository } from '../repositories/collection'
+import { useUserRepository } from '../repositories/user'
 
 const { logout } = useAuth()
 const router = useRouter()
@@ -79,11 +79,14 @@ const showSidebar = ref(true)
 const navIcon = computed(() => (showSidebar.value ? CloseBold : Expand))
 const toggleSidebar = () => { showSidebar.value = !showSidebar.value }
 
+const userName = ref('')
+
 const overdueDialogVisible = ref(false)
 const overdueList = ref([])
 const { getMyOverdueBorrows } = useBorrowRepository()
 const { getCollectionById } = useCollectionRepository()
 
+const { getUserInfo } = useUserRepository()
 
 onMounted(async () => {
   try {
@@ -112,8 +115,14 @@ onMounted(async () => {
   } catch {
     console.warn('逾期信息加载失败')
   }
+  
+  try {
+    const res = await getUserInfo()
+    userName.value = res.data.name || ''
+  } catch (error) {
+    console.warn("获取用户信息失败:", error)
+  }
 })
-
 
 const handleLogout = async () => {
   await logout()
@@ -163,7 +172,12 @@ const calculateOverdueDays = (deadline) => {
 }
 .topbar .right {
   display: flex;
+  align-items: center;
   gap: 1rem;
+}
+.topbar .greeting {
+  font-size: 1rem;
+  color: #333;
 }
 
 .main {
@@ -189,7 +203,7 @@ const calculateOverdueDays = (deadline) => {
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: 0; /* 移除左右内边距 */
+  padding: 0;
   background-color: #f5f5f5;
 }
 </style>
