@@ -26,6 +26,7 @@
           <el-menu-item index="/admin/books">书库管理</el-menu-item>
           <el-menu-item index="/admin/users">用户管理</el-menu-item>
           <el-menu-item v-if="isRootAdmin" index="/admin/admins">管理员管理</el-menu-item>
+          <el-menu-item index="/admin/report">借阅报表</el-menu-item>
         </el-menu>
       </aside>
 

@@ -7,6 +7,10 @@ export function useUserRepository() {
     return authAxios.get(`${BASE_URL}/userInfo`)
   }
 
+  const getUserById = (userId) => {
+    return authAxios.get(`${BASE_URL}/by-id`, { params: { userId } })
+  }
+
   const getUserByUserNumber = (userNumber) => {
     return authAxios.get(`${BASE_URL}/userNumber`, { params: { userNumber } })
   }
@@ -51,6 +55,7 @@ export function useUserRepository() {
 
   return {
     getUserInfo,
+    getUserById,
     getUserByUserNumber,
     getUserList,
     getAdminList,

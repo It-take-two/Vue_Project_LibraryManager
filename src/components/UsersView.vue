@@ -4,14 +4,17 @@
 
     <!-- 搜索与添加 -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <el-input
-        v-model="searchNumber"
-        placeholder="请输入学号/工号搜索"
-        style="max-width: 240px;"
-        @keyup.enter="searchUser"
-        clearable
-        @clear="fetchUsers"
-      />
+      <div style="display: flex; gap: 8px;">
+        <el-input
+          v-model="searchNumber"
+          placeholder="请输入学号/工号搜索"
+          style="max-width: 240px;"
+          @keyup.enter="searchUser"
+          clearable
+          @clear="fetchUsers"
+        />
+        <el-button type="primary" @click="searchUser">搜索</el-button>
+      </div>
       <el-button type="primary" @click="dialogVisible = true">新增用户</el-button>
     </div>
 

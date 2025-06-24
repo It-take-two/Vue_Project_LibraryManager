@@ -14,6 +14,7 @@ import BooksView from '../components/BooksView.vue'
 import RecordsView from '../components/RecordsView.vue'
 import UsersView from '../components/UsersView.vue'
 import AdminsView from '../components/AdminsView.vue'
+import ReportView from '../components/ReportView.vue'
 
 const routes = [
   { path: '/login', component: LoginView },
@@ -37,6 +38,7 @@ const routes = [
       { path: 'users', component: UsersView },
       { path: 'admins', component: AdminsView },
       { path: 'profile', component: UserCenterView },
+      { path: 'report', component:ReportView }
     ],
   },
   { path: '/:pathMatch(.*)*', redirect: '/' },

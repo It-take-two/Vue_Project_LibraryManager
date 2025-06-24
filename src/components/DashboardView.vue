@@ -83,7 +83,6 @@
           <el-descriptions-item label="借书时间">{{ format(borrow.borrowDate) }}</el-descriptions-item>
           <el-descriptions-item label="应还时间">{{ format(borrow.returnDeadline) }}</el-descriptions-item>
           <el-descriptions-item label="续借次数">{{ borrow.renewedTimes }}</el-descriptions-item>
-          <el-descriptions-item label="罚款">￥{{ borrow.finePaid }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
     </el-card>
@@ -102,7 +101,6 @@
         <el-descriptions-item label="借书时间">{{ format(borrow.borrowDate) }}</el-descriptions-item>
         <el-descriptions-item label="应还时间">{{ format(borrow.returnDeadline) }}</el-descriptions-item>
         <el-descriptions-item label="续借次数">{{ borrow.renewedTimes }}</el-descriptions-item>
-        <el-descriptions-item label="罚款">￥{{ borrow.finePaid }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag :type="borrow.returnDate ? 'success' : 'warning'">
             {{ borrow.returnDate ? '已归还' : '未归还' }}
