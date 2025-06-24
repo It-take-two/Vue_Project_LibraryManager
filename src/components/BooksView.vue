@@ -280,7 +280,6 @@ import { ref, reactive, onMounted } from 'vue'
 import { useCatalogRepository } from '../repositories/catalog'
 import { useCollectionRepository } from '../repositories/collection'
 import { useClcRepository } from '../repositories/clc'
-import { ElMessageBox, ElMessage } from 'element-plus'
 
 // 仓库接口方法
 const { 
