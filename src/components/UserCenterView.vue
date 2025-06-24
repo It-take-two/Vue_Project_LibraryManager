@@ -57,9 +57,11 @@ import { ref, onMounted, watch } from 'vue'
 import { useUserRepository } from '../repositories/user'
 import { useClassRepository } from '../repositories/class'
 import { ElMessage } from 'element-plus'
+import { useAuth } from '../repositories/auth'
 
 const { getUserInfo, updateMyUser, updateMyPassword } = useUserRepository()
 const { getClassById } = useClassRepository()
+const { logout } = useAuth()
 
 const user = ref({})
 const className = ref('')
@@ -147,9 +149,7 @@ const submitPasswordUpdate = async () => {
     const res = await updateMyPassword(oldPassword, newPassword)
     if (res.data !== false) {
       ElMessage.success('密码修改成功')
-      passwordDialogVisible.value = false
-      passwordForm.value.oldPassword = ''
-      passwordForm.value.newPassword = ''
+      logout()
     } else {
       ElMessage.error('密码修改失败')
     }

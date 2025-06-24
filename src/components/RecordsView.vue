@@ -68,7 +68,7 @@
         <el-descriptions-item label="条码">{{ fineTarget?.barcode }}</el-descriptions-item>
         <el-descriptions-item label="价值（¥）">{{ fineTarget?.value }}</el-descriptions-item>
       </el-descriptions>
-      <el-form :model="fineForm" label-width="8px" style="margin-top: 12px">
+      <el-form :model="fineForm" label-width="80px" style="margin-top: 12px">
         <el-form-item label="罚款金额">
           <el-input-number
             v-model="fineForm.finePaid"

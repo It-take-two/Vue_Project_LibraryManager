@@ -226,19 +226,22 @@ const handleSearch = async () => {
 
 const handleBorrow = async () => {
   try {
-    await addBorrow(user.value.userId, collection.value.id)
+    const result = await addBorrow(user.value.userId, collection.value.id)
     collection.value.isBorrowable = false
     const res = await getBorrowByBarcode(collection.value.barcode)
     borrow.value = res.data
-    ElMessage.success('借书成功')
+    if (result) { ElMessage.success('借书成功') }
+    else { ElMessage.error('借书失败') }
   } catch {
     ElMessage.error('借书失败')
   }
 }
 
 const handleRenew = async () => {
+  const b = await getBorrowByBarcode(barcode.value)
+  borrow.value = b.data
   try {
-    await updateBorrow(
+    const result = await updateBorrow(
       borrow.value.userId,
       borrow.value.id,
       borrow.value.renewedTimes + 1,
@@ -247,7 +250,8 @@ const handleRenew = async () => {
       false
     )
     borrow.value.renewedTimes += 1
-    ElMessage.success('续借成功')
+    if (result) { ElMessage.success('续借成功') }
+    else { ElMessage.error('续借失败') }
   } catch {
     ElMessage.error('续借失败')
   }
@@ -256,7 +260,7 @@ const handleRenew = async () => {
 const handleReturn = async () => {
   try {
     const fine = calculateFine()
-    await updateBorrow(
+    const result = await updateBorrow(
       borrow.value.userId,
       borrow.value.id,
       borrow.value.renewedTimes,
@@ -267,7 +271,8 @@ const handleReturn = async () => {
     borrow.value.returnDate = new Date().toISOString()
     borrow.value.finePaid = fine
     collection.value.isBorrowable = true
-    ElMessage.success('还书成功')
+    if (result) { ElMessage.success('还书成功') }
+    else { ElMessage.error('还书失败') }
   } catch {
     ElMessage.error('还书失败')
   }
