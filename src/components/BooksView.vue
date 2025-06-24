@@ -264,7 +264,7 @@
             <el-descriptions-item label="作者">{{ collectionDetail.author }}</el-descriptions-item>
             <el-descriptions-item label="出版社">{{ collectionDetail.publisher }}</el-descriptions-item>
             <el-descriptions-item label="ISBN">{{ collectionDetail.isbn }}</el-descriptions-item>
-            <el-descriptions-item label="分类">{{ collectionDetail.category }}</el-descriptions-item>
+            <el-descriptions-item label="分类">{{ collectionDetail.category }}{{ getCategoryName(collectionDetail.category) }}</el-descriptions-item>
             <el-descriptions-item label="出版时间">{{ format(collectionDetail.publishDate) }}</el-descriptions-item>
             <el-descriptions-item label="存入时间">{{ format(collectionDetail.storageDate) }}</el-descriptions-item>
             <el-descriptions-item label="条码">{{ collectionDetail.barcode }}</el-descriptions-item>
