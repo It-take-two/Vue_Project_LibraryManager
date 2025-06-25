@@ -21,7 +21,7 @@
         <el-descriptions-item label="姓名">{{ user.name }}</el-descriptions-item>
         <el-descriptions-item label="角色">{{ user.roleName }}</el-descriptions-item>
         <el-descriptions-item label="电话">{{ user.phone }}</el-descriptions-item>
-        <el-descriptions-item label="学号">{{ user.userNumber }}</el-descriptions-item>
+        <el-descriptions-item label="学号/工号">{{ user.userNumber }}</el-descriptions-item>
       </el-descriptions>
 
       <el-divider />
