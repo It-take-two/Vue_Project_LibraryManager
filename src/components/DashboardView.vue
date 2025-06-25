@@ -227,9 +227,9 @@ const handleSearch = async () => {
 const handleBorrow = async () => {
   try {
     const result = await addBorrow(user.value.userId, collection.value.id)
-    collection.value.isBorrowable = false
     const res = await getBorrowByBarcode(collection.value.barcode)
     borrow.value = res.data
+    handleShowBorrowUser()
     if (result) { ElMessage.success('借书成功') }
     else { ElMessage.error('借书失败') }
   } catch {
@@ -238,18 +238,17 @@ const handleBorrow = async () => {
 }
 
 const handleRenew = async () => {
-  const b = await getBorrowByBarcode(barcode.value)
-  borrow.value = b.data
   try {
     const result = await updateBorrow(
       borrow.value.userId,
       borrow.value.id,
       borrow.value.renewedTimes + 1,
-      borrow.value.finePaid,
       null,
-      false
+      null,
+      null
     )
-    borrow.value.renewedTimes += 1
+    const b = await getBorrowByBarcode(barcode.value)
+    borrow.value = b.data
     if (result) { ElMessage.success('续借成功') }
     else { ElMessage.error('续借失败') }
   } catch {
